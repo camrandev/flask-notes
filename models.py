@@ -62,6 +62,8 @@ class User(db.Model):
             first_name=first_name,
             last_name=last_name)
 
+    note = db.relationship('Note', backref='users')
+
     @classmethod
     def authenticate(cls, username, pwd):
         """Validate that user exists & password is correct.
@@ -98,7 +100,9 @@ class Notes(db.Model):
     )
 
     owner_username = db.Column(
-        
+        db.String(20),
+        db.ForeignKey('users.username'),
     )
 
+    user = db.relationship('User', backref='notes')
 

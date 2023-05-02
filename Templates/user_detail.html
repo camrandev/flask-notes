@@ -28,4 +28,42 @@ if field.widget.input_type != 'hidden' %}
 <p>{{user.username}}</p>
 <p>{{user.email}}</p>
 
+
+<h3>Notes</h3>
+<ul>
+{% for note in notes %}
+
+<li>{{note.title}} {{note.content}}<a href="/notes/{{note.id}}/update">Edit</a>
+
+<!-- Delete Note -->
+  <form action="/delete" method="POST">
+
+    {{ form.hidden_tag() }}
+
+    {% for field in form
+  if field.widget.input_type != 'hidden' %}
+      <p>
+        {{ field.label }}
+        {{ field }}
+
+        {% for error in field.errors %}
+          {{ error }}
+        {% endfor %}
+      </p>
+    {% endfor %}
+
+    <button type="submit">Delete</button>
+
+  </form>
+
+{% endfor %}
+
+</ul>
+
+<!-- Add Note -->
+
+<!-- Delete user account & notes -->
+
+
+
 {% endblock %}

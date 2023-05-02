@@ -3,8 +3,8 @@ import os
 
 from flask import Flask, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from models import connect_db, db, User
-from forms import RegisterForm, LoginForm, CSRFProtectForm
+from models import connect_db, db, User, Note
+from forms import RegisterForm, LoginForm, CSRFProtectForm, NoteEditForm
 from sqlalchemy import exc
 
 app = Flask(__name__)
@@ -114,3 +114,21 @@ def user_logout():
         session.pop("username", None)
 
     return redirect('/')
+
+@app.route('/notes/<note_id>/update', method=['GET', 'POST'])
+def update_note(note_id):
+    """show edit form, update a note, and redirect to user detail pae"""
+
+    note = Note.query.get_or_404(note_id)
+    form = NoteForm(obj=note) #create NoteForm!
+
+    if form.validate_on_submit():
+        note.title = form.title.data
+        note.content = form.content.data
+        db.session.commit()
+        flash(f"Note updated!")
+        return redirect(f'/users/{note.users.username}')
+
+
+
+
