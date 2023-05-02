@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template, redirect, flash, jsonify, request, session
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User
-from forms import RegisterForm
+from forms import RegisterForm, LoginForm
 
 app = Flask(__name__)
 
@@ -17,10 +17,12 @@ connect_db(app)
 
 toolbar = DebugToolbarExtension(app)
 
+
 @app.get('/')
 def home():
     """Redirecting to register page"""
     return redirect('/register')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -29,18 +31,18 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        username=form.username.data
-        password=form.password.data
-        email=form.email.data
-        first_name=form.first_name.data
-        last_name=form.last_name.data
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
 
-        user=User.register(username, password, email, first_name, last_name)
+        user = User.register(username, password, email, first_name, last_name)
 
         db.session.add(user)
         db.session.commit()
 
-        session['username'] = username
+        session['username'] = user.username
 
         return redirect(f'/users/{username}')
 
@@ -48,7 +50,43 @@ def register():
         return render_template('form.html', form=form)
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Accepts GET, POST
+    GET: render the login page
+    POST: attempt to credential the user and login if successful
+    """
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        user = User.authenticate(username, password)
+
+        if user:
+            session['username'] = user.username
+            return redirect(f'users/{user.username}')
+
+        else:
+            form.username.errors = ["username/password mismatch"]
+
+    return render_template('login_form.html', form=form)
+
+@app.get('/users/<username>')
+def user_detail_page(username):
+    """user detail page only viewable if logged in"""
 
 
+    if 'username' not in session:
+        flash('You must be logged in to view!')
+        return redirect('/')
 
+    else:
+        #are we sending password to client here?
+        user = User.query.filter_by(username=username).one_or_none()
 
+        #query user data here + and pass into the template
+        return render_template("user_detail.html", user=user)
