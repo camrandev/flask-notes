@@ -1,10 +1,10 @@
 """Flask app for Cupcakes"""
 import os
 
-from flask import Flask, render_template, redirect, flash, jsonify, request, session
+from flask import Flask, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm
 
 app = Flask(__name__)
 
@@ -47,7 +47,7 @@ def register():
         return redirect(f'/users/{username}')
 
     else:
-        return render_template('form.html', form=form)
+        return render_template('register_form.html', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -79,14 +79,23 @@ def login():
 def user_detail_page(username):
     """user detail page only viewable if logged in"""
 
-
     if 'username' not in session:
         flash('You must be logged in to view!')
         return redirect('/')
 
     else:
-        #are we sending password to client here?
         user = User.query.filter_by(username=username).one_or_none()
+        form = CSRFProtectForm()
 
-        #query user data here + and pass into the template
-        return render_template("user_detail.html", user=user)
+        return render_template("user_detail.html", user=user, form=form)
+
+@app.post('/logout')
+def user_logout():
+    """Logs user out and redirects to homepage"""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("username", None)
+
+    return redirect('/')
