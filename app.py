@@ -28,6 +28,8 @@ def home():
 def register():
     """Register user: show form and register/create a user"""
 
+# FIXME: add validation if logged in, no need to go to register or log in page
+# (-> go straight to user detail page)
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -39,7 +41,7 @@ def register():
 
         user = User.register(username, password, email, first_name, last_name)
 
-        db.session.add(user)
+        db.session.add(user) #integrity error for duplicated value TODO: try catch only this line (need to import the error)
         db.session.commit()
 
         session['username'] = user.username
@@ -79,12 +81,12 @@ def login():
 def user_detail_page(username):
     """user detail page only viewable if logged in"""
 
-    if 'username' not in session:
+    if 'username' not in session: #FIXME: only logged in user (1. logged in? 2. that specific user?)
         flash('You must be logged in to view!')
         return redirect('/')
 
     else:
-        user = User.query.filter_by(username=username).one_or_none()
+        user = User.query.filter_by(username=username).get_or_404()
         form = CSRFProtectForm()
 
         return render_template("user_detail.html", user=user, form=form)
