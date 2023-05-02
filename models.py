@@ -1,6 +1,6 @@
 """Models for Cupcake app."""
 
-from flask_sqlalchemy import SQLAlchemy, String
+from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
 
@@ -30,3 +30,32 @@ class User(db.Model):
         unique=True,
 
     )
+
+    password = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    email = db.Column(
+        db.String(50),
+        nullable=False,
+        unique=True
+    )
+
+    first_name = db.Column(
+        db.String(30),
+        nullable=False
+    )
+
+    last_name = db.Column(
+        db.String(30),
+        nullable=False
+    )
+
+    @classmethod
+    def register(cls, username, pwd):
+        """Register user w/hashed password & return user."""
+
+        hashed = bcrypt.generate_password_hash(pwd).decode('utf8')
+
+        return cls(username=username, password=hashed)
