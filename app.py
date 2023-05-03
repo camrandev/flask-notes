@@ -119,7 +119,7 @@ def user_logout():
 
 @app.route('/notes/<note_id>/update', methods=['GET', 'POST'])
 def update_note(note_id):
-    """show edit form, update a note, and redirect to user detail pae"""
+    """show edit form, update a note, and redirect to user detail page"""
 
     note = Note.query.get_or_404(note_id)
     form = NoteForm(obj=note)
@@ -130,9 +130,9 @@ def update_note(note_id):
         db.session.commit()
 
         flash(f"Note updated!")
-        return redirect(f'/users/{note.username}')
+        return redirect(f'/users/{note.owner_username}')
     else:
-        return render_template('add_note_form.html', form=form)
+        return render_template('edit_note_form.html', note=note, form=form)
 
 @app.post('/users/<username>/delete')
 def delete_user_and_all_notes(username):
