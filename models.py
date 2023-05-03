@@ -78,7 +78,7 @@ class User(db.Model):
         else:
             return False
 
-class Notes(db.Model):
+class Note(db.Model):
     """Note"""
 
     __tablename__ = "notes"

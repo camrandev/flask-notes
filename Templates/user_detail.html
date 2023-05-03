@@ -4,9 +4,9 @@
 
 <form action="/logout" method="POST">
 
-  {{ form.hidden_tag() }}
+  {{ logout_form.hidden_tag() }}
 
-  {% for field in form
+  {% for field in logout_form
 if field.widget.input_type != 'hidden' %}
     <p>
       {{ field.label }}
@@ -30,40 +30,58 @@ if field.widget.input_type != 'hidden' %}
 
 
 <h3>Notes</h3>
-<ul>
-{% for note in notes %}
-
-<li>{{note.title}} {{note.content}}<a href="/notes/{{note.id}}/update">Edit</a>
 
 <!-- Delete Note -->
-  <form action="/delete" method="POST">
 
-    {{ form.hidden_tag() }}
+<!-- Add Note -->
+<a href="/users/{{user.username}}/notes/add">Add A Note</a>
 
-    {% for field in form
-  if field.widget.input_type != 'hidden' %}
-      <p>
+<!-- Delete user account & notes -->
+<form action="/users/{{user.username}}/delete" method="POST">
+
+  {{ delete_form.hidden_tag() }}
+
+  {% for field in delete_form
+    if field.widget.input_type != 'hidden' %}
+    <p>
         {{ field.label }}
         {{ field }}
 
         {% for error in field.errors %}
-          {{ error }}
+        {{ error }}
         {% endfor %}
       </p>
-    {% endfor %}
+      {% endfor %}
 
-    <button type="submit">Delete</button>
+      <button type="submit">Delete User</button>
 
-  </form>
+    </form>
 
-{% endfor %}
+    <div>
+      {% for note in notes %}
 
-</ul>
+      <div>{{note.title}} {{note.content}}<a href="/notes/{{note.id}}/update">Edit</a>
+        <form action="/delete" method="POST">
 
-<!-- Add Note -->
+          {{ form.hidden_tag() }}
 
-<!-- Delete user account & notes -->
+          {% for field in form
+            if field.widget.input_type != 'hidden' %}
+            <p>
+              {{ field.label }}
+              {{ field }}
 
+              {% for error in field.errors %}
+              {{ error }}
+              {% endfor %}
+            </p>
+            {% endfor %}
 
+            <button type="submit">Delete</button>
+          </form>
 
-{% endblock %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% endblock %}

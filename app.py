@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User, Note
-from forms import RegisterForm, LoginForm, CSRFProtectForm, NoteEditForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm
 from sqlalchemy import exc
 
 app = Flask(__name__)
@@ -100,9 +100,10 @@ def user_detail_page(username):
 
     else:
         user = User.query.get_or_404(username)
-        form = CSRFProtectForm()
+        logout_form = CSRFProtectForm()
+        delete_form = CSRFProtectForm()
 
-        return render_template("user_detail.html", user=user, form=form)
+        return render_template("user_detail.html", user=user, logout_form=logout_form, delete_form=delete_form)
 
 @app.post('/logout')
 def user_logout():
@@ -115,7 +116,7 @@ def user_logout():
 
     return redirect('/')
 
-@app.route('/notes/<note_id>/update', method=['GET', 'POST'])
+@app.route('/notes/<note_id>/update', methods=['GET', 'POST'])
 def update_note(note_id):
     """show edit form, update a note, and redirect to user detail pae"""
 
@@ -126,8 +127,36 @@ def update_note(note_id):
         note.title = form.title.data
         note.content = form.content.data
         db.session.commit()
+
         flash(f"Note updated!")
-        return redirect(f'/users/{note.users.username}')
+        return redirect(f'/users/{note.username}')
+
+@app.post('/users/<username>/delete')
+def delete_user_and_all_notes(username):
+
+   #protect the route
+    if session['username'] != username:
+        return redirect(f"/users/{session['username']}")
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("username", None)
+
+        user = User.query.get_or_404(username)
+
+        for note in user.notes:
+            db.session.delete(note)
+
+        db.session.delete(user)
+        db.session.commit()
+
+        flash('User deleted!')
+        return redirect('/')
+
+
+    #delete the user
+    #delete all notes associated with the user
 
 
 
