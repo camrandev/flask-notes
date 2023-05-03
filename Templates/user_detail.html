@@ -63,9 +63,9 @@ if field.widget.input_type != 'hidden' %}
       <div>{{note.title}} {{note.content}}<a href="/notes/{{note.id}}/update">Edit</a>
         <form action="/delete" method="POST">
 
-          {{ form.hidden_tag() }}
+          {{ delete_note_form.hidden_tag() }}
 
-          {% for field in form
+          {% for field in delete_note_form
             if field.widget.input_type != 'hidden' %}
             <p>
               {{ field.label }}

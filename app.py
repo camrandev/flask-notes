@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User, Note
-from forms import RegisterForm, LoginForm, CSRFProtectForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm, NoteForm
 from sqlalchemy import exc
 
 app = Flask(__name__)
@@ -102,8 +102,9 @@ def user_detail_page(username):
         user = User.query.get_or_404(username)
         logout_form = CSRFProtectForm()
         delete_form = CSRFProtectForm()
+        delete_note_form = CSRFProtectForm()
 
-        return render_template("user_detail.html", user=user, logout_form=logout_form, delete_form=delete_form)
+        return render_template("user_detail.html", user=user, logout_form=logout_form, delete_form=delete_form, notes=user.notes,  delete_note_form=delete_note_form)
 
 @app.post('/logout')
 def user_logout():
@@ -121,7 +122,7 @@ def update_note(note_id):
     """show edit form, update a note, and redirect to user detail pae"""
 
     note = Note.query.get_or_404(note_id)
-    form = NoteForm(obj=note) #create NoteForm!
+    form = NoteForm(obj=note)
 
     if form.validate_on_submit():
         note.title = form.title.data
@@ -130,9 +131,12 @@ def update_note(note_id):
 
         flash(f"Note updated!")
         return redirect(f'/users/{note.username}')
+    else:
+        return render_template('add_note_form.html', form=form)
 
 @app.post('/users/<username>/delete')
 def delete_user_and_all_notes(username):
+    """Delete a user and all associated notes"""
 
    #protect the route
     if session['username'] != username:
@@ -158,6 +162,25 @@ def delete_user_and_all_notes(username):
     #delete the user
     #delete all notes associated with the user
 
+@app.route('/users/<username>/notes/add', methods=['POST', 'GET'])
+def add_notes(username):
+    """Show form and add a new note"""
 
+    form = NoteForm()
+
+    if form.validate_on_submit():
+        user=User.query.get_or_404(username)
+        title = form.title.data
+        content = form.content.data
+
+        new_note = Note(title=title, content=content)
+        user.notes.append(new_note)
+
+        db.session.commit()
+
+        return redirect(f'/users/{username}')
+
+    else:
+        return render_template('add_note_form.html', form=form, username=username)
 
 
